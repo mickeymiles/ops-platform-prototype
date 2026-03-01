@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>确定性运维平台 - 修复交互版</title>
+    <style>
+        :root {
+            --primary-dark: #0d1b2a;
+            --primary-blue: #1b4965;
+            --accent-blue: #2a9d8f;
+            --accent-green: #4ad66d;
+            --accent-orange: #f4a261;
+            --accent-red: #e76f51;
+            
+            --light-bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --sidebar-bg: #1b263b;
+            --text-dark: #1a1a1a;
+            --text-light: #6c757d;
+            --text-white: #ffffff;
+            --border-color: #e0e0e0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--light-bg);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+        
+        /* 顶部应用栏 */
+        .app-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-blue));
+            color: var(--text-white);
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+        }
+        
+        .app-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, var(--accent-blue), var(--accent-green));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        /* 侧边导航栏 */
+        .sidebar {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            bottom: 0;
+            width: 240px;
+            background: var(--sidebar-bg);
+            color: rgba(255, 255, 255, 0.8);
+            z-index: 900;
+            overflow-y: auto;
+        }
+        
+        .nav-menu {
+            padding: 20px 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+        
+        .nav-item.active {
+            background: rgba(42, 157, 143, 0.2);
+            color: white;
+            border-left: 4px solid var(--accent-blue);
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            margin-left: 240px;
+            margin-top: 64px;
+            padding: 24px;
+            min-height: calc(100vh - 64px);
+            display: none;
+        }
+        
+        .main-content.active {
+            display: block;
+        }
+        
+        /* 页面内容样式 */
+        .page-header {
+            margin-bottom: 32px;
+        }
+        
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+        }
+        
+        .page-subtitle {
+            color: var(--text-light);
+            font-size: 16px;
+        }
+        
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+        
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+        }
+        
+        .metric-description {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #238f7f;
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: var(--primary-dark);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+        
+        .btn-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .btn-warning:hover {
+            background: #ffeaa7;
+        }
+        
+        .btn-critical {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .btn-critical:hover {
+            background: #f5c6cb;
+        }
+        
+        /* 状态徽章 */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-healthy {
+            background: rgba(42, 157, 143, 0.15);
+            color: #2a9d8f;
+        }
+        
+        .status-warning {
+            background: rgba(244, 162, 97, 0.15);
+            color: #f4a261;
+        }
+        
+        .status-critical {
+            background: rgba(231, 111, 81, 0.15);
+            color: #e76f51;
+        }
+        
+        /* 数据表格 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th {
+            text-align: left;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            color: var(--text-light);
+            font-weight: 500;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .data-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        /* 操作区域 */
+        .action-area {
+            margin-bottom: 32px;
+        }
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #238d7f;
+        }
+        
+        .btn-secondary {
+            background: var(--light-bg);
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+        
+        /* 操作区域 */
+        .action-area {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        /* 表格样式 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .data-table th {
+            background: var(--light-bg);
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+        
+        .data-table tr:hover {
+            background: rgba(42, 157, 143, 0.05);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .dashboard-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部应用栏 -->
+    <header class="app-bar">
+        <div class="app-brand">
+            <div class="brand-logo">D</div>
+            <div>
+                <h2 style="font-size: 18px; margin-bottom: 2px;">确定性运维平台</h2>
+                <p style="font-size: 12px; opacity: 0.8;">从"救火队"到"护航者"</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- 侧边导航栏 -->
+    <nav class="sidebar">
+        <div class="nav-menu">
+            <div class="nav-item active" data-page="dashboard">
+                <span>📊</span>
+                <span>仪表板</span>
+            </div>
+            <div class="nav-item" data-page="monitoring">
+                <span>👁️</span>
+                <span>全景可观测</span>
+            </div>
+            <div class="nav-item" data-page="ai-ops">
+                <span>🤖</span>
+                <span>智能运维</span>
+            </div>
+            <div class="nav-item" data-page="infrastructure">
+                <span>🔧</span>
+                <span>基础设施</span>
+            </div>
+            <div class="nav-item" data-page="business">
+                <span>📈</span>
+                <span>业务监控</span>
+            </div>
+            <div class="nav-item" data-page="alerts">
+                <span>🚨</span>
+                <span>故障管理</span>
+            </div>
+            <div class="nav-item" data-page="capacity">
+                <span>🎯</span>
+                <span>容量规划</span>
+            </div>
+            <div class="nav-item" data-page="configuration">
+                <span>📋</span>
+                <span>配置管理</span>
+            </div>
+            <div class="nav-item" data-page="analytics">
+                <span>📊</span>
+                <span>数据分析</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 - 仪表板 -->
+    <main id="dashboard" class="main-content active">
+        <div class="page-header">
+            <h1 class="page-title">运维指挥中心</h1>
+            <p class="page-subtitle">实时监控系统健康状态，智能分析运维数据，快速响应异常事件</p>
+        </div>
+
+        <div class="dashboard-cards">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">系统健康度</h3>
+                    <span style="color: #2a9d8f; font-weight: 600;">98.5%</span>
+                </div>
+                <div class="metric-value">98.5%</div>
+                <div class="metric-description">过去24小时正常运行率</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">故障响应时间</h3>
+                    <span style="color: #1b4965; font-weight: 600;">4.2分钟</span>
+                </div>
+                <div class="metric-value">4.2分钟</div>
+                <div class="metric-description">平均故障响应时间</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">当前告警</h3>
+                    <span style="color: #f4a261; font-weight: 600;">12个</span>
+                </div>
+                <div class="metric-value">12</div>
+                <div class="metric-description">活跃告警数量</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">资源利用率</h3>
+                    <span style="color: #2a9d8f; font-weight: 600;">73%</span>
+                </div>
+                <div class="metric-value">73%</div>
+                <div class="metric-description">平均CPU利用率</div>
+            </div>
+        </div>
+
+        <!-- 快速操作区域 -->
+        <div class="action-area">
+            <h3 style="margin-bottom: 16px; color: var(--primary-dark);">快速操作</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 32px;">
+                <button class="btn btn-primary" onclick="executeRoutineCheck()">
+                    <span style="font-size: 18px; margin-right: 8px;">🔄</span>
+                    执行例行巡检
+                </button>
+                <button class="btn btn-secondary" onclick="generatePerformanceReport()">
+                    <span style="font-size: 18px; margin-right: 8px;">📊</span>
+                    生成性能报告
+                </button>
+                <button class="btn btn-secondary" onclick="handleStorageFailure()">
+                    <span style="font-size: 18px; margin-right: 8px;">🔧</span>
+                    处理存储故障
+                </button>
+                <button class="btn btn-secondary" onclick="analyzeCapacity()">
+                    <span style="font-size: 18px; margin-right: 8px;">📈</span>
+                    容量预测分析
+                </button>
+                <button class="btn btn-secondary" onclick="showAlertManagement()">
+                    <span style="font-size: 18px; margin-right: 8px;">🚨</span>
+                    告警管理
+                </button>
+                <button class="btn btn-secondary" onclick="showBackupStatus()">
+                    <span style="font-size: 18px; margin-right: 8px;">💾</span>
+                    备份状态
+                </button>
+            </div>
+        </div>
+
+        <!-- 基础设施监控 -->
+        <div class="card" style="margin-bottom: 32px;">
+            <div class="card-header">
+                <h3 class="card-title">基础设施监控</h3>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-small" onclick="refreshInfrastructure()">刷新</button>
+                    <button class="btn btn-small btn-secondary" onclick="exportInfrastructureData()">导出</button>
+                </div>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>设备类型</th>
+                        <th>设备数量</th>
+                        <th>健康状态</th>
+                        <th>CPU利用率</th>
+                        <th>内存使用率</th>
+                        <th>网络流量</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Web服务器集群</strong></td>
+                        <td>18台</td>
+                        <td><span class="status-badge status-healthy">96%健康</span></td>
+                        <td>68%</td>
+                        <td>72%</td>
+                        <td>1.2Gbps</td>
+                        <td>
+                            <div style="display: flex; gap: 4px;">
+                                <button class="btn btn-small" onclick="viewServerDetails('web')">详情</button>
+                                <button class="btn btn-small btn-secondary" onclick="restartServerCluster('web')">重启</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>数据库集群</strong></td>
+                        <td>6台</td>
+                        <td><span class="status-badge status-healthy">100%健康</span></td>
+                        <td>45%</td>
+                        <td>58%</td>
+                        <td>450Mbps</td>
+                        <td>
+                            <div style="display: flex; gap: 4px;">
+                                <button class="btn btn-small" onclick="viewServerDetails('db')">详情</button>
+                                <button class="btn btn-small btn-secondary" onclick="backupDatabase()">备份</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>应用服务器</strong></td>
+                        <td>12台</td>
+                        <td><span class="status-badge status-warning">82%健康</span></td>
+                        <td>78%</td>
+                        <td>85%</td>
+                        <td>890Mbps</td>
+                        <td>
+                            <div style="display: flex; gap: 4px;">
+                                <button class="btn btn-small" onclick="viewServerDetails('app')">详情</button>
+                                <button class="btn btn-small btn-warning" onclick="scaleApplicationServers()">扩容</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>网络设备</strong></td>
+                        <td>4台</td>
+                        <td><span class="status-badge status-warning">75%健康</span></td>
+                        <td>32%</td>
+                        <td>41%</td>
+                        <td>2.4Gbps</td>
+                        <td>
+                            <div style="display: flex; gap: 4px;">
+                                <button class="btn btn-small" onclick="viewServerDetails('network')">详情</button>
+                                <button class="btn btn-small btn-secondary" onclick="optimizeNetwork()">优化</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>存储设备</strong></td>
+                        <td>2台</td>
+                        <td><span class="status-badge status-critical">50%健康</span></td>
+                        <td>22%</td>
+                        <td>35%</td>
+                        <td>120Mbps</td>
+                        <td>
+                            <div style="display: flex; gap: 4px;">
+                                <button class="btn btn-small" onclick="viewServerDetails('storage')">详情</button>
+                                <button class="btn btn-small btn-critical" onclick="replaceStorageDevice()">更换</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="padding: 16px; border-top: 1px solid var(--border-color); background: var(--light-bg);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="color: var(--text-light); font-size: 14px;">总计: 42台设备 | 平均健康度: 80.6%</span>
+                    </div>
+                    <div>
+                        <button class="btn btn-small" onclick="addNewDevice()">+ 添加新设备</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 实时性能图表 -->
+        <div class="card" style="margin-bottom: 32px;">
+            <div class="card-header">
+                <h3 class="card-title">实时性能监控</h3>
+                <div style="display: flex; gap: 8px;">
+                    <select id="timeRange" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 4px; background: white;">
+                        <option value="1h">最近1小时</option>
+                        <option value="6h" selected>最近6小时</option>
+                        <option value="24h">最近24小时</option>
+                        <option value="7d">最近7天</option>
+                    </select>
+                </div>
+            </div>
+            <div style="padding: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;">
+                    <div>
+                        <h4 style="margin-bottom: 12px; color: var(--primary-dark);">CPU利用率趋势</h4>
+                        <div style="height: 200px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; color: var(--accent-blue);">73%</div>
+                                <div style="color: var(--text-light); font-size: 14px;">平均CPU利用率</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="margin-bottom: 12px; color: var(--primary-dark);">内存使用趋势</h4>
+                        <div style="height: 200px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; color: var(--accent-green);">68%</div>
+                                <div style="color: var(--text-light); font-size: 14px;">平均内存使用率</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 24px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;">
+                    <div>
+                        <h4 style="margin-bottom: 12px; color: var(--primary-dark);">网络流量</h4>
+                        <div style="height: 200px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; color: var(--accent-orange);">1.2Gbps</div>
+                                <div style="color: var(--text-light); font-size: 14px;">平均网络流量</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="margin-bottom: 12px; color: var(--primary-dark);">磁盘IO</h4>
+                        <div style="height: 200px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; color: var(--primary-blue);">420MB/s</div>
+                                <div style="color: var(--text-light); font-size: 14px;">平均磁盘读写速度</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 告警统计 -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">告警统计</h3>
+                <button class="btn btn-small" onclick="viewAllAlerts()">查看全部告警</button>
+            </div>
+            <div style="padding: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; text-align: center;">
+                    <div>
+                        <div style="font-size: 32px; font-weight: bold; color: var(--accent-red);">12</div>
+                        <div style="color: var(--text-light); font-size: 14px;">严重告警</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 32px; font-weight: bold; color: var(--accent-orange);">24</div>
+                        <div style="color: var(--text-light); font-size: 14px;">警告告警</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 32px; font-weight: bold; color: var(--accent-blue);">8</div>
+                        <div style="color: var(--text-light); font-size: 14px;">信息告警</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 32px; font-weight: bold; color: var(--text-light);">126</div>
+                        <div style="color: var(--text-light); font-size: 14px;">已处理告警</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 24px;">
+                    <h4 style="margin-bottom: 12px; color: var(--primary-dark);">最新告警列表</h4>
+                    <div style="background: #f8f9fa; border-radius: 8px; padding: 16px;">
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                            <div>
+                                <span style="color: var(--accent-red); font-weight: bold;">[严重]</span>
+                                <span style="margin-left: 8px;">存储设备故障：磁盘阵列RAID5降级</span>
+                            </div>
+                            <span style="color: var(--text-light); font-size: 14px;">10分钟前</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                            <div>
+                                <span style="color: var(--accent-orange); font-weight: bold;">[警告]</span>
+                                <span style="margin-left: 8px;">应用服务器CPU使用率超过阈值：85%</span>
+                            </div>
+                            <span style="color: var(--text-light); font-size: 14px;">25分钟前</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                            <div>
+                                <span style="color: var(--accent-blue); font-weight: bold;">[信息]</span>
+                                <span style="margin-left: 8px;">数据库备份完成：生产数据库全量备份</span>
+                            </div>
+                            <span style="color: var(--text-light); font-size: 14px;">2小时前</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 主内容区 - 全景可观测 -->
+    <main id="monitoring" class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">全景可观测中心</h1>
+            <p class="page-subtitle">端到端全链路监控，实时感知系统状态</p>
+        </div>
+
+        <!-- 监控概览卡片 -->
+        <div class="dashboard-cards" style="margin-bottom: 32px;">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">应用性能监控</h3>
+                    <span style="color: #2a9d8f; font-weight: 600;">98.2%</span>
+                </div>
+                <div class="metric-value">98.2%</div>
+                <div class="metric-description">应用可用性</div>
+                <div style="margin-top: 12px;">
+                    <button class="btn btn-small" onclick="viewAppPerformance()">查看详情</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">API响应时间</h3>
+                    <span style="color: #1b4965; font-weight: 600;">142ms</span>
+                </div>
+                <div class="metric-value">142ms</div>
+                <div class="metric-description">平均API响应时间</div>
+                <div style="margin-top: 12px;">
+                    <button class="btn btn-small" onclick="viewApiMetrics()">性能分析</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">错误率</h3>
+                    <span style="color: #f4a261; font-weight: 600;">0.8%</span>
+                </div>
+                <div class="metric-value">0.8%</div>
+                <div class="metric-description">HTTP错误率</div>
+                <div style="margin-top: 12px;">
+                    <button class="btn btn-small" onclick="viewErrorAnalysis()">错误分析</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">用户会话</h3>
+                    <span style="color: #2a9d8f; font-weight: 600;">2.4K</span>
+                </div>
+                <div class="metric-value">2,412</div>
+                <div class="metric-description">活跃用户会话</div>
+                <div style="margin-top: 12px;">
+                    <button class="btn btn-small" onclick="viewUserSessions()">会话分析</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 实时监控视图 -->
+        <div class="card" style="margin-bottom: 32px;">
+            <div class="card-header">
+                <h3 class="card-title">实时监控视图</h3>
+                <div style="display: flex; gap: 8px;">
+                    <select id="monitoringTimeRange" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 4px; background: white;">
+                        <option value="5m">最近5分钟</option>
+                        <option value="15m" selected>最近15分钟</option>
+                        <option value="1h">最近1小时</option>
+                        <option value="6h">最近6小时</option>
+                    </select>
+                    <button class="btn btn-small" onclick="refreshMonitoring()">刷新</button>
+                </div>
+            </div>
+            <div style="padding: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 24px;">
+                    <div>
+                        <h4 style="margin-bottom: 12px; color: var(--primary-dark);">请求量趋势</h4>
+                        <div style="height: 200px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; color: var(--accent-blue);">12.4K</div>
+                                <div style="color: var(--text-light); font-size: 14px;">每分钟请求量</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="margin-bottom: 12px; color: var(--primary-dark);">响应时间分布</h4>
+                        <div style="height: 200px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; color: var(--accent-green);">95% < 200ms</div>
+                                <div style="color: var(--text-light); font-size: 14px;">响应时间满足SLA</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;">
+                    <div>
+                        <h4 style="margin-bottom: 12px; color: var(--primary-dark);">错误类型分布</h4>
+                        <div style="height: 200px; background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid var(--border-color);">
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>5xx 服务器错误</span>
+                                    <span style="color: var(--accent-red); font-weight: 600;">42</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>4xx 客户端错误</span>
+                                    <span style="color: var(--accent-orange); font-weight: 600;">128</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>3xx 重定向错误</span>
+                                    <span style="color: var(--accent-blue); font-weight: 600;">24</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>超时错误</span>
+                                    <span style="color: var(--text-light); font-weight: 600;">18</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="margin-bottom: 12px; color: var(--primary-dark);">服务依赖拓扑</h4>
+                        <div style="height: 200px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; color: var(--primary-blue);">8个</div>
+                                <div style="color: var(--text-light); font-size: 14px;">微服务依赖关系</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分布式追踪 -->
+        <div class="card" style="margin-bottom: 32px;">
+            <div class="card-header">
+                <h3 class="card-title">分布式追踪视图</h3>
+                <button class="btn btn-small" onclick="startNewTrace()">开始新追踪</button>
+            </div>
+            <div style="padding: 20px;">
+                <div style="margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 12px; color: var(--primary-dark);">最近追踪请求</h4>
+                    <div style="background: #f8f9fa; border-radius: 8px; padding: 16px;">
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                            <div>
+                                <span style="font-weight: 600;">用户下单请求</span>
+                                <div style="color: var(--text-light); font-size: 12px; margin-top: 4px;">
+                                    <span>路径: /api/v1/orders</span> • 
+                                    <span>耗时: 342ms</span> • 
+                                    <span>状态: 200</span>
+                                </div>
+                            </div>
+                            <span style="color: var(--text-light); font-size: 14px;">3分钟前</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                            <div>
+                                <span style="font-weight: 600;">支付处理请求</span>
+                                <div style="color: var(--text-light); font-size: 12px; margin-top: 4px;">
+                                    <span>路径: /api/v1/payments</span> • 
+                                    <span>耗时: 128ms</span> • 
+                                    <span>状态: 200</span>
+                                </div>
+                            </div>
+                            <span style="color: var(--text-light); font-size: 14px;">8分钟前</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                            <div>
+                                <span style="font-weight: 600;">库存检查请求</span>
+                                <div style="color: var(--text-light); font-size: 12px; margin-top: 4px;">
+                                    <span>路径: /api/v1/inventory</span> • 
+                                    <span>耗时: 56ms</span> • 
+                                    <span>状态: 200</span>
+                                </div>
+                            </div>
+                            <span style="color: var(--text-light); font-size: 14px;">12分钟前</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 style="margin-bottom: 12px; color: var(--primary-dark);">服务调用链分析</h4>
+                    <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid var(--border-color);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 12px; height: 12px; background: var(--accent-blue); border-radius: 50%;"></div>
+                                <span>API网关</span>
+                            </div>
+                            <span style="color: var(--text-light);">45ms</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; margin-left: 20px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 12px; height: 12px; background: var(--accent-green); border-radius: 50%;"></div>
+                                <span>订单服务</span>
+                            </div>
+                            <span style="color: var(--text-light);">128ms</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; margin-left: 40px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 12px; height: 12px; background: var(--accent-orange); border-radius: 50%;"></div>
+                                <span>支付服务</span>
+                            </div>
+                            <span style="color: var(--text-light);">86ms</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-left: 40px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 12px; height: 12px; background: var(--primary-blue); border-radius: 50%;"></div>
+                                <span>库存服务</span>
+                            </div>
+                            <span style="color: var(--text-light);">42ms</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 日志分析 -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">实时日志分析</h3>
+                <button class="btn btn-small" onclick="searchLogs()">搜索日志</button>
+            </div>
+            <div style="padding: 20px;">
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                        <input type="text" placeholder="输入关键词搜索日志..." style="flex: 1; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px;">
+                        <button class="btn btn-small">搜索</button>
+                    </div>
+                    
+                    <div style="background: #1b263b; color: #e9ecef; border-radius: 8px; padding: 16px; font-family: 'Monaco', 'Consolas', monospace; font-size: 12px; max-height: 300px; overflow-y: auto;">
+                        <div style="margin-bottom: 8px;">
+                            <span style="color: #4ad66d;">INFO</span> 
+                            <span style="color: #cccccc;">2026-02-28 00:15:23</span> 
+                            <span style="color: #2a9d8f;">[OrderService]</span> 
+                            <span>处理新订单成功，订单号: ORD-20260228-001234</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <span style="color: #f4a261;">WARN</span> 
+                            <span style="color: #cccccc;">2026-02-28 00:14:58</span> 
+                            <span style="color: #2a9d8f;">[PaymentService]</span> 
+                            <span>支付处理延迟较高: 128ms，阈值: 100ms</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <span style="color: #4ad66d;">INFO</span> 
+                            <span style="color: #cccccc;">2026-02-28 00:14:12</span> 
+                            <span style="color: #2a9d8f;">[InventoryService]</span> 
+                            <span>库存检查完成，商品ID: PROD-7890，库存充足</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <span style="color: #e76f51;">ERROR</span> 
+                            <span style="color: #cccccc;">2026-02-28 00:13:45</span> 
+                            <span style="color: #2a9d8f;">[UserService]</span> 
+                            <span>用户认证失败，用户ID: USR-5678，原因: 令牌过期</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <span style="color: #4ad66d;">INFO</span> 
+                            <span style="color: #cccccc;">2026-02-28 00:13:20</span> 
+                            <span style="color: #2a9d8f;">[APIGateway]</span> 
+                            <span>API请求统计: 总请求: 1242，成功: 1238，失败: 4</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 style="margin-bottom: 12px; color: var(--primary-dark);">日志统计</h4>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; text-align: center;">
+                        <div>
+                            <div style="font-size: 24px; font-weight: bold; color: var(--accent-green);">1,242</div>
+                            <div style="color: var(--text-light); font-size: 14px;">INFO日志</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 24px; font-weight: bold; color: var(--accent-orange);">86</div>
+                            <div style="color: var(--text-light); font-size: 14px;">WARN日志</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 24px; font-weight: bold; color: var(--accent-red);">12</div>
+                            <div style="color: var(--text-light); font-size: 14px;">ERROR日志</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 24px; font-weight: bold; color: var(--text-light);">24</div>
+                            <div style="color: var(--text-light); font-size: 14px;">DEBUG日志</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 主内容区 - 智能运维 -->
+    <main id="ai-ops" class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">智能运维中心</h1>
+            <p class="page-subtitle">AI驱动智能分析，自动化运维流程</p>
+        </div>
+
+        <!-- AI智能分析概览 -->
+        <div class="dashboard-cards" style="margin-bottom: 32px;">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">异常检测准确率</h3>
+                    <span style="color: #2a9d8f; font-weight: 600;">94.5%</span>
+                </div>
+                <div class="metric-value">94.5%</div>
+                <div class="metric-description">AI异常检测准确率</div>
+                <div style="margin-top: 12px;">
+                    <button class="btn btn-small" onclick="viewAnomalyDetection()">查看详情</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">根因分析成功率</h3>
+                    <span style="color: #1b4965; font-weight: 600;">88.2%</span>
+                </div>
+                <div class="metric-value">88.2%</div>
+                <div class="metric-description">自动根因分析成功率</div>
+                <div style="margin-top: 12px;">
+                    <button class="btn btn-small" onclick="viewRootCauseAnalysis()">分析报告</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">预测准确率</h3>
+                    <span style="color: #f4a261; font-weight: 600;">91.3%</span>
+                </div>
+                <div class="metric-value">91.3%</div>
+                <div class="metric-description">容量预测准确率</div>
+                <div style="margin-top: 12px;">
+                    <button class="btn btn-small" onclick="viewCapacityForecast()">预测分析</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">自动化执行率</h3>
+                    <span style="color: #2a9d8f; font-weight: 600;">76.8%</span>
+                </div>
+                <div class="metric-value">76.8%</div>
+                <div class="metric-description">运维任务自动化率</div>
+                <div style="margin-top: 12px;">
+                    <button class="btn btn-small" onclick="viewAutomationStats()">自动化统计</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 异常智能检测 -->
+        <div class="card" style="margin-bottom: 32px;">
+            <div class="card-header">
+                <h3 class="card-title">异常智能检测</h3>
+                <button class="btn btn-small" onclick="runAnomalyDetection()">运行检测</button>
+            </div>
+            <div style="padding: 20px;">
+                <div style="margin-bottom: 24px;">
+                    <h4 style="margin-bottom: 12px; color: var(--primary-dark);">检测模型状态</h4>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;">
+                        <div>
+                            <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid var(--border-color);">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span>CPU异常检测</span>
+                                    <span style="color: var(--accent-green); font-weight: 600;">运行中</span>
+                                </div>
+                                <div style="font-size: 12px; color: var(--text-light);">准确率: 96.2% | 最近检测: 2分钟前</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid var(--border-color);">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span>内存泄漏检测</span>
+                                    <span style="color: var(--accent-green); font-weight: 600;">运行中</span>
+                                </div>
+                                <div style="font-size: 12px; color: var(--text-light);">准确率: 92.8% | 最近检测: 5分钟前</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid var(--border-color);">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span>网络异常检测</span>
+                                    <span style="color: var(--accent-orange); font-weight: 600;">训练中</span>
+                                </div>
+                                <div style="font-size: 12px; color: var(--text-light);">准确率: 88.5% | 训练进度: 75%</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid var(--border-color);">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span>应用性能检测</span>
+                                    <span style="color: var(--accent-green); font-weight: 600;">运行中</span>
+                                </div>
+                                <div style="font-size: 12px; color: var(--text-light);">准确率: 94.1% | 最近检测: 1分钟前</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 style="margin-bottom: 12px; color: var(--primary-dark);">最近检测到的异常</h4>
+                    <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                            <div>
+                                <span style="color: var(--accent-red); font-weight: bold;">[严重]</span>
+                                <span style="margin-left: 8px;">应用服务器CPU使用率异常飙升</span>
+                                <div style="color: var(--text-light); font-size: 12px; margin-top: 4px;">
+                                    <span>检测时间: 00:12:34</span> • 
+                                    <span>置信度: 92.5%</span> • 
+                                    <span>影响范围: 应用服务器集群</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-small" onclick="handleDetectedAnomaly('cpu_spike')">处理</button>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                            <div>
+                                <span style="color: var(--accent-orange); font-weight: bold;">[警告]</span>
+                                <span style="margin-left: 8px;">数据库连接池使用率持续增长</span>
+                                <div style="color: var(--text-light); font-size: 12px; margin-top: 4px;">
+                                    <span>检测时间: 00:08:15</span> • 
+                                    <span>置信度: 86.3%</span> • 
+                                    <span>影响范围: 数据库服务</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-small" onclick="handleDetectedAnomaly('db_connection')">处理</button>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                            <div>
+                                <span style="color: var(--accent-blue); font-weight: bold;">[信息]</span>
+                                <span style="margin-left: 8px;">API响应时间周期性波动</span>
+                                <div style="color: var(--text-light); font-size: 12px; margin-top: 4px;">
+                                    <span>检测时间: 00:05:42</span> • 
+                                    <span>置信度: 78.9%</span> • 
+                                    <span>影响范围: API网关</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-small" onclick="handleDetectedAnomaly('api_response')">分析</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 根因分析定位 -->
+        <div class="card" style="margin-bottom: 32px;">
+            <div class="card-header">
+                <h3 class="card-title">根因分析定位</h3>
+                <button class="btn btn-small" onclick="startRootCauseAnalysis()">开始分析</button>
+            </div>
+            <div style="padding: 20px;">
+                <div style="margin-bottom: 24px;">
+                    <h4 style="margin-bottom: 12px; color: var(--primary-dark);">分析历史记录</h4>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                        <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; margin-bottom: 8px;">应用响应延迟</div>
+                            <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px;">
+                                分析时间: 2026-02-27 22:15<br>
+                                根因: 数据库索引缺失<br>
+                                解决率: 100%
+                            </div>
+                            <button class="btn btn-small" onclick="viewAnalysisDetails('app_latency')">查看详情</button>
+                        </div>
+                        <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; margin-bottom: 8px;">内存泄漏问题</div>
+                            <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px;">
+                                分析时间: 2026-02-27 18:42<br>
+                                根因: 缓存未正确释放<br>
+                                解决率: 100%
+                            </div>
+                            <button class="btn btn-small" onclick="viewAnalysisDetails('memory_leak')">查看详情</button>
+                        </div>
+                        <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; margin-bottom: 8px;">网络丢包异常</div>
+                            <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px;">
+                                分析时间: 2026-02-27 14:28<br>
+                                根因: 交换机配置错误<br>
+                                解决率: 100%
+                            </div>
+                            <button class="btn btn-small" onclick="viewAnalysisDetails('network_packet')">查看详情</button>
+                        </div>
+                        <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; margin-bottom: 8px;">磁盘IO瓶颈</div>
+                            <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px;">
+                                分析时间: 2026-02-27 10:15<br>
+                                根因: RAID配置不当<br>
+                                解决率: 100%
+                            </div>
+                            <button class="btn btn-small" onclick="viewAnalysisDetails('disk_io')">查看详情</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 style="margin-bottom: 12px; color: var(--primary-dark);">分析算法配置</h4>
+                    <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                            <span>关联分析算法</span>
+                            <span style="color: var(--accent-green); font-weight: 600;">已启用</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                            <span>时序模式识别</span>
+                            <span style="color: var(--accent-green); font-weight: 600;">已启用</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                            <span>拓扑依赖分析</span>
+                            <span style="color: var(--accent-green); font-weight: 600;">已启用</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>机器学习模型</span>
+                            <span style="color: var(--accent-orange); font-weight: 600;">训练中 (85%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 自动化运维编排 -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">自动化运维编排</h3>
+                <button class="btn btn-small" onclick="createNewWorkflow()">创建新流程</button>
+            </div>
+            <div style="padding: 20px;">
+                <div style="margin-bottom: 24px;">
+                    <h4 style="margin-bottom: 12px; color: var(--primary-dark);">预定义自动化流程</h4>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                        <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; margin-bottom: 8px;">服务器重启流程</div>
+                            <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px;">
+                                步骤: 6个<br>
+                                平均执行时间: 8分钟<br>
+                                成功率: 98.5%
+                            </div>
+                            <button class="btn btn-small" onclick="runWorkflow('server_restart')">立即执行</button>
+                        </div>
+                        <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; margin-bottom: 8px;">数据库备份流程</div>
+                            <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px;">
+                                步骤: 8个<br>
+                                平均执行时间: 45分钟<br>
+                                成功率: 99.2%
+                            </div>
+                            <button class="btn btn-small" onclick="runWorkflow('db_backup')">立即执行</button>
+                        </div>
+                        <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; margin-bottom: 8px;">应用部署流程</div>
+                            <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px;">
+                                步骤: 12个<br>
+                                平均执行时间: 15分钟<br>
+                                成功率: 96.8%
+                            </div>
+                            <button class="btn btn-small" onclick="runWorkflow('app_deployment')">立即执行</button>
+                        </div>
+                        <div style="background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; margin-bottom: 8px;">监控告警处理</div>
+                            <div style="font-size: 12px; color: var(--text-light); margin-bottom: 12px;">
+                                步骤: 5个<br>
+                                平均执行时间: 3分钟<br>
+                                成功率: 95.4%
+                            </div>
+                            <button class="btn btn-small" onclick="runWorkflow('alert_handling')">立即执行</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 style="margin-bottom: 12px; color: var(--primary-dark);">流程执行统计</h4>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; text-align: center;">
+                        <div>
+                            <div style="font-size: 24px; font-weight: bold; color: var(--accent-green);">1,248</div>
+                            <div style="color: var(--text-light); font-size: 14px;">总执行次数</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 24px; font-weight: bold; color: var(--accent-blue);">98.2%</div>
+                            <div style="color: var(--text-light); font-size: 14px;">平均成功率</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 24px; font-weight: bold; color: var(--accent-orange);">12.4</div>
+                            <div style="color: var(--text-light); font-size: 14px;">平均执行时间(分)</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 24px; font-weight: bold; color: var(--text-light);">86</div>
+                            <div style="color: var(--text-light); font-size: 14px;">自动化流程数</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 其他页面内容（简化版） -->
+    <main id="infrastructure" class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">基础设施管理</h1>
+            <p class="page-subtitle">服务器、网络、存储统一管理</p>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">基础设施概览</h3>
+            </div>
+            <div style="padding: 20px;">基础设施管理页面内容</div>
+        </div>
+    </main>
+
+    <main id="business" class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">业务监控中心</h1>
+            <p class="page-subtitle">关键业务指标实时监控</p>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">业务指标</h3>
+            </div>
+            <div style="padding: 20px;">业务监控页面内容</div>
+        </div>
+    </main>
+
+    <script>
+        // 页面切换功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取所有导航项
+            const navItems = document.querySelectorAll('.nav-item');
+            const mainContents = document.querySelectorAll('.main-content');
+            
+            // 导航点击事件
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const pageId = this.getAttribute('data-page');
+                    
+                    // 更新导航选中状态
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 显示对应的页面内容
+                    mainContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === pageId) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // 按钮点击事件
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // 简单的点击反馈
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+            
+            // 表格行点击事件
+            const tableRows = document.querySelectorAll('.data-table tr');
+            tableRows.forEach(row => {
+                row.addEventListener('click', function() {
+                    if (this.querySelector('button')) return; // 避免按钮点击触发
+                    console.log('点击了表格行:', this.cells[0].textContent);
+                });
+            });
+            
+            // 模拟实时数据更新
+            setInterval(() => {
+                const time = new Date().toLocaleTimeString('zh-CN');
+                console.log(`数据更新时间: ${time}`);
+            }, 30000);
+            
+            // 移动端侧边栏控制
+            const menuToggle = document.createElement('button');
+            menuToggle.className = 'btn btn-primary';
+            menuToggle.innerHTML = '☰';
+            menuToggle.style.position = 'fixed';
+            menuToggle.style.bottom = '20px';
+            menuToggle.style.right = '20px';
+            menuToggle.style.zIndex = '1000';
+            menuToggle.style.display = 'none';
+            
+            document.body.appendChild(menuToggle);
+            
+            menuToggle.addEventListener('click', () => {
+                document.querySelector('.sidebar').classList.toggle('active');
+            });
+            
+            // 窗口大小变化处理
+            function checkWindowSize() {
+                if (window.innerWidth <= 768) {
+                    menuToggle.style.display = 'block';
+                } else {
+                    menuToggle.style.display = 'none';
+                    document.querySelector('.sidebar').classList.remove('active');
+                }
+            }
+            
+            window.addEventListener('resize', checkWindowSize);
+            checkWindowSize();
+            
+            // 初始化一些模拟数据
+            initializeMockData();
+        });
+        
+        // 模拟数据初始化
+        function initializeMockData() {
+            console.log('初始化模拟数据...');
+            // 这里可以初始化一些模拟数据
+        }
+        
+        // 快速操作按钮函数
+        function executeRoutineCheck() {
+            alert('开始执行例行巡检...\n预计耗时: 15分钟\n巡检范围: 所有服务器集群');
+            console.log('执行例行巡检');
+        }
+        
+        function generatePerformanceReport() {
+            alert('正在生成性能报告...\n报告范围: 最近7天\n包含指标: CPU、内存、网络、磁盘');
+            console.log('生成性能报告');
+        }
+        
+        function handleStorageFailure() {
+            alert('开始处理存储故障...\n故障设备: 存储阵列-02\n处理方案: 自动迁移数据到备用存储');
+            console.log('处理存储故障');
+        }
+        
+        function analyzeCapacity() {
+            alert('开始容量预测分析...\n分析周期: 未来3个月\n预测指标: CPU、内存、存储需求');
+            console.log('容量预测分析');
+        }
+        
+        function showAlertManagement() {
+            // 切换到告警管理页面
+            const alertPage = document.getElementById('alerts');
+            if (alertPage) {
+                document.querySelectorAll('.main-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                alertPage.classList.add('active');
+                
+                // 更新导航
+                document.querySelectorAll('.nav-item').forEach(nav => {
+                    nav.classList.remove('active');
+                });
+                document.querySelector('.nav-item[data-page="alerts"]').classList.add('active');
+            }
+        }
+        
+        function showBackupStatus() {
+            alert('显示备份状态...\n最近备份: 2小时前\n备份成功率: 98%\n存储使用率: 65%');
+            console.log('显示备份状态');
+        }
+        
+        // 基础设施管理按钮函数
+        function refreshInfrastructure() {
+            alert('刷新基础设施数据...\n获取最新设备状态');
+            console.log('刷新基础设施数据');
+        }
+        
+        function exportInfrastructureData() {
+            alert('导出基础设施数据...\n导出格式: CSV\n包含字段: 设备类型、数量、健康状态、性能指标');
+            console.log('导出基础设施数据');
+        }
+        
+        function viewServerDetails(serverType) {
+            alert(`查看${getServerTypeName(serverType)}详情...\n设备类型: ${getServerTypeName(serverType)}\n健康状态: ${getServerHealthStatus(serverType)}\n性能指标: 正在加载...`);
+            console.log(`查看${serverType}服务器详情`);
+        }
+        
+        function restartServerCluster(serverType) {
+            if (confirm(`确定要重启${getServerTypeName(serverType)}集群吗？\n这将导致服务短暂中断。`)) {
+                alert(`正在重启${getServerTypeName(serverType)}集群...\n预计耗时: 3分钟`);
+                console.log(`重启${serverType}服务器集群`);
+            }
+        }
+        
+        function backupDatabase() {
+            alert('开始数据库备份...\n备份类型: 全量备份\n目标存储: 异地备份中心\n预计耗时: 45分钟');
+            console.log('备份数据库');
+        }
+        
+        function scaleApplicationServers() {
+            alert('开始应用服务器扩容...\n扩容数量: 3台\n扩容类型: 自动弹性扩容\n预计耗时: 10分钟');
+            console.log('应用服务器扩容');
+        }
+        
+        function optimizeNetwork() {
+            alert('开始网络优化...\n优化范围: 核心交换机\n优化目标: 降低延迟、提高带宽利用率');
+            console.log('网络优化');
+        }
+        
+        function replaceStorageDevice() {
+            if (confirm('确定要更换存储设备吗？\n这将触发数据迁移流程。')) {
+                alert('开始更换存储设备...\n步骤1: 数据迁移到备用存储\n步骤2: 更换故障磁盘\n步骤3: 数据回迁');
+                console.log('更换存储设备');
+            }
+        }
+        
+        function addNewDevice() {
+            alert('添加新设备...\n设备类型: 请选择\n设备配置: 请填写\n网络配置: 自动分配');
+            console.log('添加新设备');
+        }
+        
+        function viewAllAlerts() {
+            alert('查看全部告警...\n显示所有活跃和历史告警\n支持按类型、时间、严重程度筛选');
+            console.log('查看全部告警');
+        }
+        
+        // 辅助函数
+        function getServerTypeName(type) {
+            const names = {
+                'web': 'Web服务器集群',
+                'db': '数据库集群',
+                'app': '应用服务器',
+                'network': '网络设备',
+                'storage': '存储设备'
+            };
+            return names[type] || '未知设备';
+        }
+        
+        function getServerHealthStatus(type) {
+            const statuses = {
+                'web': '96%健康',
+                'db': '100%健康',
+                'app': '82%健康',
+                'network': '75%健康',
+                'storage': '50%健康'
+            };
+            return statuses[type] || '状态未知';
+        }
+        
+        // 全景可观测中心函数
+        function viewAppPerformance() {
+            alert('查看应用性能详情...\n可用性: 98.2%\n平均响应时间: 142ms\n错误率: 0.8%');
+            console.log('查看应用性能详情');
+        }
+        
+        function viewApiMetrics() {
+            alert('查看API性能指标...\nAPI总数: 86个\n平均响应时间: 142ms\n95分位响应时间: 245ms');
+            console.log('查看API性能指标');
+        }
+        
+        function viewErrorAnalysis() {
+            alert('查看错误分析...\n错误类型分布:\n• 5xx错误: 42个\n• 4xx错误: 128个\n• 超时错误: 18个');
+            console.log('查看错误分析');
+        }
+        
+        function viewUserSessions() {
+            alert('查看用户会话分析...\n活跃会话: 2,412个\n平均会话时长: 8分24秒\n新用户比例: 12%');
+            console.log('查看用户会话分析');
+        }
+        
+        function refreshMonitoring() {
+            alert('刷新监控数据...\n获取最新性能指标\n更新监控视图');
+            console.log('刷新监控数据');
+        }
+        
+        function startNewTrace() {
+            alert('开始新的分布式追踪...\n追踪ID: TRACE-' + Date.now() + '\n追踪类型: 全链路性能分析');
+            console.log('开始新的分布式追踪');
+        }
+        
+        function searchLogs() {
+            alert('搜索日志...\n支持关键词、时间范围、日志级别筛选\n搜索结果将实时显示');
+            console.log('搜索日志');
+        }
+        
+        // 智能运维中心函数
+        function viewAnomalyDetection() {
+            alert('查看异常检测详情...\n总检测次数: 12,458\n准确率: 94.5%\n误报率: 2.8%');
+            console.log('查看异常检测详情');
+        }
+        
+        function viewRootCauseAnalysis() {
+            alert('查看根因分析报告...\n分析总数: 842次\n成功率: 88.2%\n平均分析时间: 3.2分钟');
+            console.log('查看根因分析报告');
+        }
+        
+        function viewCapacityForecast() {
+            alert('查看容量预测分析...\n预测周期: 未来3个月\n准确率: 91.3%\n置信区间: 85-95%');
+            console.log('查看容量预测分析');
+        }
+        
+        function viewAutomationStats() {
+            alert('查看自动化统计...\n自动化任务数: 86个\n执行成功率: 98.2%\n节省人工时间: 1,248小时');
+            console.log('查看自动化统计');
+        }
+        
+        function runAnomalyDetection() {
+            alert('运行异常检测...\n检测范围: 全系统\n检测类型: CPU、内存、网络、应用\n预计耗时: 2分钟');
+            console.log('运行异常检测');
+        }
+        
+        function handleDetectedAnomaly(anomalyType) {
+            const anomalyNames = {
+                'cpu_spike': 'CPU使用率异常飙升',
+                'db_connection': '数据库连接池使用率持续增长',
+                'api_response': 'API响应时间周期性波动'
+            };
+            alert(`处理检测到的异常: ${anomalyNames[anomalyType] || '未知异常'}\n处理方案: 自动分析并生成修复建议`);
+            console.log(`处理异常: ${anomalyType}`);
+        }
+        
+        function startRootCauseAnalysis() {
+            alert('开始根因分析...\n分析目标: 最近发生的异常事件\n分析方法: 关联分析 + 时序模式识别\n预计耗时: 5分钟');
+            console.log('开始根因分析');
+        }
+        
+        function viewAnalysisDetails(analysisType) {
+            const analysisNames = {
+                'app_latency': '应用响应延迟分析',
+                'memory_leak': '内存泄漏问题分析',
+                'network_packet': '网络丢包异常分析',
+                'disk_io': '磁盘IO瓶颈分析'
+            };
+            alert(`查看分析详情: ${analysisNames[analysisType] || '未知分析'}\n分析报告包含: 问题描述、根因定位、解决方案、验证结果`);
+            console.log(`查看分析详情: ${analysisType}`);
+        }
+        
+        function createNewWorkflow() {
+            alert('创建新的自动化流程...\n流程类型: 请选择\n步骤定义: 可视化编排\n触发条件: 定时/事件/手动');
+            console.log('创建新的自动化流程');
+        }
+        
+        function runWorkflow(workflowType) {
+            const workflowNames = {
+                'server_restart': '服务器重启流程',
+                'db_backup': '数据库备份流程',
+                'app_deployment': '应用部署流程',
+                'alert_handling': '监控告警处理流程'
+            };
+            if (confirm(`确定要执行${workflowNames[workflowType] || '未知流程'}吗？`)) {
+                alert(`开始执行${workflowNames[workflowType] || '未知流程'}...\n执行状态将实时更新`);
+                console.log(`执行流程: ${workflowType}`);
+            }
+        }
+        });
+    </script>
+</body>
+</html>
