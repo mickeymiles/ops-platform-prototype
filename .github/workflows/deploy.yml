@@ -1,0 +1,29 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Deploy to server via SSH
+      uses: appleboy/ssh-action@master
+      with:
+        host: 118.145.117.14
+        username: root
+        password: Huawei5%
+        port: 22
+        script: |
+          cd /var/www/war-room
+          git pull origin master
+          # 重启服务
+          pkill -f 'http.server 9006' || true
+          nohup python3 -m http.server 9006 --bind 0.0.0.0 > /dev/null 2>&1 &
+          echo "Deployed to http://118.145.117.14:9006"
