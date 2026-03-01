@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>确定性运维平台 - 修复交互版</title>
+    <style>
+        :root {
+            --primary-dark: #0d1b2a;
+            --primary-blue: #1b4965;
+            --accent-blue: #2a9d8f;
+            --accent-green: #4ad66d;
+            --accent-orange: #f4a261;
+            --accent-red: #e76f51;
+            
+            --light-bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --sidebar-bg: #1b263b;
+            --text-dark: #1a1a1a;
+            --text-light: #6c757d;
+            --text-white: #ffffff;
+            --border-color: #e0e0e0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--light-bg);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+        
+        /* 顶部应用栏 */
+        .app-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-blue));
+            color: var(--text-white);
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+        }
+        
+        .app-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, var(--accent-blue), var(--accent-green));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        /* 侧边导航栏 */
+        .sidebar {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            bottom: 0;
+            width: 240px;
+            background: var(--sidebar-bg);
+            color: rgba(255, 255, 255, 0.8);
+            z-index: 900;
+            overflow-y: auto;
+        }
+        
+        .nav-menu {
+            padding: 20px 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+        
+        .nav-item.active {
+            background: rgba(42, 157, 143, 0.2);
+            color: white;
+            border-left: 4px solid var(--accent-blue);
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            margin-left: 240px;
+            margin-top: 64px;
+            padding: 24px;
+            min-height: calc(100vh - 64px);
+            display: none;
+        }
+        
+        .main-content.active {
+            display: block;
+        }
+        
+        /* 页面内容样式 */
+        .page-header {
+            margin-bottom: 32px;
+        }
+        
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+        }
+        
+        .page-subtitle {
+            color: var(--text-light);
+            font-size: 16px;
+        }
+        
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+        
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+        }
+        
+        .metric-description {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #238d7f;
+        }
+        
+        .btn-secondary {
+            background: var(--light-bg);
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+        
+        /* 操作区域 */
+        .action-area {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        /* 表格样式 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .data-table th {
+            background: var(--light-bg);
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+        
+        .data-table tr:hover {
+            background: rgba(42, 157, 143, 0.05);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .dashboard-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部应用栏 -->
+    <header class="app-bar">
+        <div class="app-brand">
+            <div class="brand-logo">D</div>
+            <div>
+                <h2 style="font-size: 18px; margin-bottom: 2px;">确定性运维平台</h2>
+                <p style="font-size: 12px; opacity: 0.8;">从"救火队"到"护航者"</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- 侧边导航栏 -->
+    <nav class="sidebar">
+        <div class="nav-menu">
+            <div class="nav-item active" data-page="dashboard">
+                <span>📊</span>
+                <span>仪表板</span>
+            </div>
+            <div class="nav-item" data-page="monitoring">
+                <span>👁️</span>
+                <span>全景可观测</span>
+            </div>
+            <div class="nav-item" data-page="ai-ops">
+                <span>🤖</span>
+                <span>智能运维</span>
+            </div>
+            <div class="nav-item" data-page="infrastructure">
+                <span>🔧</span>
+                <span>基础设施</span>
+            </div>
+            <div class="nav-item" data-page="business">
+                <span>📈</span>
+                <span>业务监控</span>
+            </div>
+            <div class="nav-item" data-page="alerts">
+                <span>🚨</span>
+                <span>故障管理</span>
+            </div>
+            <div class="nav-item" data-page="capacity">
+                <span>🎯</span>
+                <span>容量规划</span>
+            </div>
+            <div class="nav-item" data-page="configuration">
+                <span>📋</span>
+                <span>配置管理</span>
+            </div>
+            <div class="nav-item" data-page="analytics">
+                <span>📊</span>
+                <span>数据分析</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 - 仪表板 -->
+    <main id="dashboard" class="main-content active">
+        <div class="page-header">
+            <h1 class="page-title">运维指挥中心</h1>
+            <p class="page-subtitle">实时监控系统健康状态，智能分析运维数据，快速响应异常事件</p>
+        </div>
+
+        <div class="dashboard-cards">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">系统健康度</h3>
+                    <span style="color: #2a9d8f; font-weight: 600;">98.5%</span>
+                </div>
+                <div class="metric-value">98.5%</div>
+                <div class="metric-description">过去24小时正常运行率</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">故障响应时间</h3>
+                    <span style="color: #1b4965; font-weight: 600;">4.2分钟</span>
+                </div>
+                <div class="metric-value">4.2分钟</div>
+                <div class="metric-description">平均故障响应时间</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">当前告警</h3>
+                    <span style="color: #f4a261; font-weight: 600;">12个</span>
+                </div>
+                <div class="metric-value">12</div>
+                <div class="metric-description">活跃告警数量</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">资源利用率</h3>
+                    <span style="color: #2a9d8f; font-weight: 600;">73%</span>
+                </div>
+                <div class="metric-value">73%</div>
+                <div class="metric-description">平均CPU利用率</div>
+            </div>
+        </div>
+
+        <div class="action-area">
+            <button class="btn btn-primary" onclick="alert('执行例行巡检')">🔄 执行例行巡检</button>
+            <button class="btn btn-secondary" onclick="alert('生成性能报告')">📊 生成性能报告</button>
+            <button class="btn btn-secondary" onclick="alert('处理存储故障')">🔧 处理存储故障</button>
+            <button class="btn btn-secondary" onclick="alert('容量预测分析')">📈 容量预测分析</button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">基础设施监控</h3>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>设备类型</th>
+                        <th>设备数量</th>
+                        <th>健康状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Web服务器集群</td>
+                        <td>18台</td>
+                        <td><span style="color: #2a9d8f;">96%健康</span></td>
+                        <td><button class="btn btn-secondary" onclick="alert('查看详情')">查看</button></td>
+                    </tr>
+                    <tr>
+                        <td>数据库集群</td>
+                        <td>6台</td>
+                        <td><span style="color: #2a9d8f;">100%健康</span></td>
+                        <td><button class="btn btn-secondary" onclick="alert('查看详情')">查看</button></td>
+                    </tr>
+                    <tr>
+                        <td>网络设备</td>
+                        <td>4台</td>
+                        <td><span style="color: #f4a261;">75%健康</span></td>
+                        <td><button class="btn btn-secondary" onclick="alert('查看详情')">查看</button></td>
+                    </tr>
+                    <tr>
+                        <td>存储设备</td>
+                        <td>2台</td>
+                        <td><span style="color: #e76f51;">50%健康</span></td>
+                        <td><button class="btn btn-secondary" onclick="alert('查看详情')">查看</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- 主内容区 - 全景可观测 -->
+    <main id="monitoring" class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">全景可观测中心</h1>
+            <p class="page-subtitle">端到端全链路监控，实时感知系统状态</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">监控视图</h3>
+            </div>
+            <div style="padding: 20px;">
+                <p>这里是全景可观测页面，包含以下功能：</p>
+                <ul style="margin: 15px 0; padding-left: 20px;">
+                    <li>实时数据流监控</li>
+                    <li>分布式追踪视图</li>
+                    <li>性能指标分析</li>
+                    <li>告警事件追踪</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <!-- 主内容区 - 智能运维 -->
+    <main id="ai-ops" class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">智能运维中心</h1>
+            <p class="page-subtitle">AI驱动智能分析，自动化运维流程</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">AI智能分析</h3>
+            </div>
+            <div style="padding: 20px;">
+                <p>这里是智能运维页面，包含以下功能：</p>
+                <ul style="margin: 15px 0; padding-left: 20px;">
+                    <li>异常智能检测</li>
+                    <li>根因分析定位</li>
+                    <li>容量趋势预测</li>
+                    <li>自动化运维编排</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <!-- 其他页面内容（简化版） -->
+    <main id="infrastructure" class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">基础设施管理</h1>
+            <p class="page-subtitle">服务器、网络、存储统一管理</p>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">基础设施概览</h3>
+            </div>
+            <div style="padding: 20px;">基础设施管理页面内容</div>
+        </div>
+    </main>
+
+    <main id="business" class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">业务监控中心</h1>
+            <p class="page-subtitle">关键业务指标实时监控</p>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">业务指标</h3>
+            </div>
+            <div style="padding: 20px;">业务监控页面内容</div>
+        </div>
+    </main>
+
+    <script>
+        // 页面切换功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取所有导航项
+            const navItems = document.querySelectorAll('.nav-item');
+            const mainContents = document.querySelectorAll('.main-content');
+            
+            // 导航点击事件
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const pageId = this.getAttribute('data-page');
+                    
+                    // 更新导航选中状态
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 显示对应的页面内容
+                    mainContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === pageId) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // 按钮点击事件
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // 简单的点击反馈
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+            
+            // 表格行点击事件
+            const tableRows = document.querySelectorAll('.data-table tr');
+            tableRows.forEach(row => {
+                row.addEventListener('click', function() {
+                    if (this.querySelector('button')) return; // 避免按钮点击触发
+                    console.log('点击了表格行:', this.cells[0].textContent);
+                });
+            });
+            
+            // 模拟实时数据更新
+            setInterval(() => {
+                const time = new Date().toLocaleTimeString('zh-CN');
+                console.log(`数据更新时间: ${time}`);
+            }, 30000);
+            
+            // 移动端侧边栏控制
+            const menuToggle = document.createElement('button');
+            menuToggle.className = 'btn btn-primary';
+            menuToggle.innerHTML = '☰';
+            menuToggle.style.position = 'fixed';
+            menuToggle.style.bottom = '20px';
+            menuToggle.style.right = '20px';
+            menuToggle.style.zIndex = '1000';
+            menuToggle.style.display = 'none';
+            
+            document.body.appendChild(menuToggle);
+            
+            menuToggle.addEventListener('click', () => {
+                document.querySelector('.sidebar').classList.toggle('active');
+            });
+            
+            // 窗口大小变化处理
+            function checkWindowSize() {
+                if (window.innerWidth <= 768) {
+                    menuToggle.style.display = 'block';
+                } else {
+                    menuToggle.style.display = 'none';
+                    document.querySelector('.sidebar').classList.remove('active');
+                }
+            }
+            
+            window.addEventListener('resize', checkWindowSize);
+            checkWindowSize();
+        });
+    </script>
+</body>
+</html>

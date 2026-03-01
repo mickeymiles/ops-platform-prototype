@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>运维平台工作入口</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0d1b2a, #1b4965);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #2a9d8f;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 3rem;
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s, background 0.3s;
+            text-align: left;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #4ad66d;
+        }
+        
+        .card p {
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background: #2a9d8f;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn:hover {
+            background: #238f7f;
+        }
+        
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+        }
+        
+        .btn-primary {
+            background: #1b4965;
+        }
+        
+        .btn-primary:hover {
+            background: #0f3d5a;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+        
+        .status-completed {
+            background: rgba(74, 214, 109, 0.2);
+            color: #4ad66d;
+        }
+        
+        .status-inprogress {
+            background: rgba(244, 162, 97, 0.2);
+            color: #f4a261;
+        }
+        
+        .footer {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            text-align: center;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🤖</div>
+        <h1>运维平台工作入口</h1>
+        <div class="subtitle">葫芦娃团队 · 确定性运维平台项目</div>
+        
+        <div class="card-grid">
+            <div class="card">
+                <span class="status status-inprogress">进行中</span>
+                <h3>运维平台原型</h3>
+                <p>确定性运维平台修复交互版本，包含完整的管理界面、监控面板和业务分析模块。</p>
+                <a href="/ops-platform.html" class="btn btn-large">访问原型</a>
+            </div>
+            
+            <div class="card">
+                <span class="status status-completed">已汇总</span>
+                <h3>工作成果汇总</h3>
+                <p>所有项目的工作成果汇总，包括技术选型报告、项目进度、团队分工和快速访问链接。</p>
+                <a href="/work-summary.html" class="btn btn-large btn-primary">查看汇总</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>快速导航</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
+                <a href="/ops-platform.html" class="btn">运维原型</a>
+                <a href="/work-summary.html" class="btn">工作汇总</a>
+                <a href="/" class="btn">战情室</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>服务器地址：118.145.117.14:8080</p>
+            <p>最后更新：2026年2月27日 23:30</p>
+        </div>
+    </div>
+</body>
+</html>

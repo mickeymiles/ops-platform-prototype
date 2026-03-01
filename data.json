@@ -1,0 +1,61 @@
+{
+  "updateTime": "2026-03-01T03:42:24.541Z",
+  "overview": {
+    "idle": 5,
+    "busy": 0,
+    "vacation": 0,
+    "totalTasks": 5
+  },
+  "generals": [
+    {
+      "id": "guanyu",
+      "name": "关羽",
+      "title": "武圣 · 代码审查",
+      "avatar": "🔴",
+      "status": "idle",
+      "task": "暂无任务",
+      "progress": 0,
+      "deadline": "--"
+    },
+    {
+      "id": "zhaoyun",
+      "name": "赵云",
+      "title": "常胜将军 · 架构设计",
+      "avatar": "⚪",
+      "status": "idle",
+      "task": "已完成",
+      "progress": 100,
+      "deadline": "16:30"
+    },
+    {
+      "id": "zhangfei",
+      "name": "张飞",
+      "title": "万人敌 · 快速原型",
+      "avatar": "⚫",
+      "status": "idle",
+      "task": "已完成",
+      "progress": 100,
+      "deadline": "17:00"
+    },
+    {
+      "id": "machao",
+      "name": "马超",
+      "title": "锦马超 · 性能优化",
+      "avatar": "🔵",
+      "status": "idle",
+      "task": "暂无任务",
+      "progress": 0,
+      "deadline": "--"
+    },
+    {
+      "id": "huangzhong",
+      "name": "黄忠",
+      "title": "老当益壮 · 测试稳定",
+      "avatar": "🟡",
+      "status": "idle",
+      "task": "已完成",
+      "progress": 100,
+      "deadline": "17:30"
+    }
+  ]
+}
